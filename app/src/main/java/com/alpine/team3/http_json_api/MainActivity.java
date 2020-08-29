@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onRefresh() {
         if(wyyMusic.getPlaylistCount() > 1){
-            wyyMusic.requestSongList();
+            wyyMusic.requestNextPlayList();
         }
     }
 }

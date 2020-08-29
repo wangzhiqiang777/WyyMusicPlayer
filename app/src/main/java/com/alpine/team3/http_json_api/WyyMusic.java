@@ -6,7 +6,6 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.lzx.starrysky.provider.SongInfo;
@@ -39,7 +38,7 @@ public class WyyMusic {
     private boolean isLogin = false;
     private OnWyyListener wyyListener;
     private int playlistCount;
-    private int currentPlaylistId;
+    private int currentPlaylistsIndex;
 
     public WyyMusic(Context context, Application application) {
         this.context = context;
@@ -91,9 +90,6 @@ public class WyyMusic {
                 int code = json.getInteger("code");
                 if (code == 200){
                     uid = json.getJSONObject("account").getLong("id").toString();
-//                    Intent intent = new Intent(MainActivity.this, MainActivity.class);
-//                    intent.putExtra("uid", uid);
-//                    startActivity(intent);
                     Log.d(TAG, "onSuccess: 登录成功！");
                     isLogin = true;
                     wyyListener.onLoginResult(true);
@@ -107,8 +103,7 @@ public class WyyMusic {
             @Override
             public void onError(Response<String> response) {
                 super.onError(response);
-                //Toast 返回
-                Toast.makeText(context, "网络错误", Toast.LENGTH_SHORT).show();
+                wyyListener.onLoginResult(false);
             }
         });
     }
@@ -130,7 +125,7 @@ public class WyyMusic {
     }
 
     public void requestNextPlayList(){
-        requestSongList((currentPlaylistId+1)%playlistCount);
+        requestSongList((currentPlaylistsIndex +1)%playlistCount);
     }
     private WyyPlaylist wyyPlaylist;
     public void requestPlayList(){
@@ -138,12 +133,13 @@ public class WyyMusic {
             @Override
             public void onSuccess(Response<String> response) {
                 String jsonData = response.body();
-                Log.d(TAG, "onSuccess: playlist json="+jsonData);
+                Log.d(TAG, "requestPlayList: json="+jsonData);
                 Gson gson = new Gson();
                 wyyPlaylist = gson.fromJson(jsonData, WyyPlaylist.class);
                 if (wyyPlaylist!=null && wyyPlaylist.getCode() == 200){
+                    playlistCount = wyyPlaylist.getPlaylist().size();
                     Log.d(TAG, "requestPlayList: playlistCount="+playlistCount);
-                    requestSongList(currentPlaylistId);
+                    requestSongList(currentPlaylistsIndex);
                 }else{
                     Log.d(TAG, "requestPlayList: 获取歌单失败");
                     wyyListener.onGotPlaylist(null);
@@ -153,76 +149,45 @@ public class WyyMusic {
             @Override
             public void onError(Response<String> response) {
                 super.onError(response);
-                Toast.makeText(context, "网络错误", Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "requestPlayList:onError: " + response.toString() );
                 wyyListener.onGotPlaylist(null);
             }
         });
     }
-    public void requestSongList(int playlistId){
+    public void requestSongList(int index){
+        if(wyyPlaylist == null){
+            requestPlayList();
+            return;
+        }
 
-        OkGo.<String>get(BASE_URL + "/user/playlist?uid=" + uid).execute(new StringCallback() {
+        if(index < 0)index = 0;
+        else if(index > wyyPlaylist.getPlaylist().size())
+            index = wyyPlaylist.getPlaylist().size();
+        long listId = wyyPlaylist.getPlaylist().get(index).getId();
+
+        currentPlaylistsIndex = index;
+        OkGo.<String>get(BASE_URL + "/playlist/detail?id=" + listId).execute(new StringCallback() {
             @Override
             public void onSuccess(Response<String> response) {
                 String jsonData = response.body();
-                JSONObject json = JSON.parseObject(jsonData);
-                Log.d(TAG, "onSuccess: playlist json="+json);
-                int code = json.getInteger("code");
-                if (code == 200){
-                    Toast.makeText(context, "获取歌单成功", Toast.LENGTH_SHORT).show();
-                    //String listId = json.getJSONArray("playlist").getJSONObject(0).getString("id");
-                    JSONArray array = json.getJSONArray("playlist");
-                    playlistCount = array.size();
-                    String listId = array.getJSONObject(playlistId).getLong("id").toString();
-                    Log.d(TAG, "onSuccess: playlistCount="+playlistCount+",index="+playlistId+",listId="+listId);
-                    OkGo.<String>get(BASE_URL + "/playlist/detail?id=" + listId).execute(new StringCallback() {
-                        @Override
-                        public void onSuccess(Response<String> response) {
-                            String jsonData = response.body();
-                            JSONObject json = JSON.parseObject(jsonData);
-                            Log.d(TAG, "onSuccess: json="+json);
-                            int code = json.getInteger("code");
-                            if (code == 200){
-                                Toast.makeText(context, "获取歌曲成功", Toast.LENGTH_SHORT).show();
-                                JSONArray jArr = json.getJSONObject("playlist").getJSONArray("tracks");
-                                int i;
-                                playList.clear();
-                                for (i = 0; i < jArr.size(); i++){
-                                    JSONObject j = jArr.getJSONObject(i);
-                                    String name = j.getString("name");
-                                    String id = j.getString("id");
-                                    String artist = j.getJSONArray("ar").getJSONObject(0).getString("name");
-                                    String curl = j.getJSONObject("al").getString("picUrl");
-                                    Log.d(TAG, "onSuccess: curl="+curl);
-                                    long duration = j.getLong("dt");
-                                    SongInfo info = new SongInfo();
-                                    info.setSongId(id);
-                                    info.setSongName(name);
-                                    info.setArtist(artist);
-                                    info.setSongCover(curl);
-                                    info.setDuration(duration);
-                                    playList.add(info);
-                                }
-                                currentPlaylistId = playlistId;
-                                wyyListener.onGotPlaylist(playList);
+                Log.d(TAG, "requestSongList: json="+jsonData);
+                Gson gson = new Gson();
+                MySongList songList = gson.fromJson(jsonData, MySongList.class);
 
-                            }else{
-                                Log.d(TAG, "onSuccess: 获取歌曲失败" + code);
-                                Toast.makeText(context, "获取歌曲失败", Toast.LENGTH_SHORT).show();
-                                wyyListener.onGotPlaylist(null);
-                            }
-                        }
-                    });
+                if (songList!=null && songList.getCode() == 200){
+                    playList.clear();
+                    playList = songList.getSongInfoList();
+                    wyyListener.onGotPlaylist(playList);
+                    Log.d(TAG, "requestSongList: playList="+playList.size());
                 }else{
-                    Log.d(TAG, "onSuccess: 获取歌单失败" + code);
-                    Toast.makeText(context, "获取歌单失败", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "requestSongList: 获取歌曲失败");
                     wyyListener.onGotPlaylist(null);
                 }
             }
-
             @Override
             public void onError(Response<String> response) {
                 super.onError(response);
-                Toast.makeText(context, "网络错误", Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "requestSongList:onError: "+response.toString());
                 wyyListener.onGotPlaylist(null);
             }
         });
