@@ -1,10 +1,7 @@
-package com.alpine.team3.http_json_api;
+package com.neusoft.qiangzi.wyyplayer;
 
 import android.os.Message;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.TextView;
 
 import com.alibaba.fastjson.JSON;
 import com.lzx.starrysky.intercept.InterceptorCallback;

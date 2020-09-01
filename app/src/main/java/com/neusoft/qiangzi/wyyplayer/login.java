@@ -1,4 +1,4 @@
-package com.alpine.team3.http_json_api;
+package com.neusoft.qiangzi.wyyplayer;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -26,7 +26,7 @@ import java.util.logging.Level;
 
 import okhttp3.OkHttpClient;
 
-import static com.alpine.team3.http_json_api.RequestSongInfoInterceptor.BASE_URL;
+import static com.neusoft.qiangzi.wyyplayer.RequestSongInfoInterceptor.BASE_URL;
 
 public class login extends AppCompatActivity implements View.OnClickListener {
 

@@ -1,4 +1,4 @@
-package com.alpine.team3.http_json_api;
+package com.neusoft.qiangzi.wyyplayer;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -17,10 +17,9 @@ import com.lzx.starrysky.provider.SongInfo;
 
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, WyyMusic.OnWyyListener, SwipeRefreshLayout.OnRefreshListener {
+public class MainActivity extends AppCompatActivity implements WyyMusic.OnWyyListener, SwipeRefreshLayout.OnRefreshListener {
 
     private static final String TAG = "MainActivity";
-    Button button_play, button_last, button_next;
     RecyclerView recyclerView;
     MusicAdapter musicAdapter;
     WyyMusic wyyMusic;
@@ -30,14 +29,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.song_play_list);
-
-        //初始化view
-//        button_play = findViewById(R.id.button_play);
-//        button_play.setOnClickListener(this);
-//        button_last = findViewById(R.id.button_last);
-//        button_last.setOnClickListener(this);
-//        button_next = findViewById(R.id.button_next);
-//        button_next.setOnClickListener(this);
 
         //初始化网易云数据
         wyyMusic = new WyyMusic(this, getApplication());
@@ -73,37 +64,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    public void onClick(View v) {
-        switch(v.getId()){
-            case R.id.button_play:
-                if(button_play.getText().equals("播放")){
-                    button_play.setText("暂停");
-                    StarrySky.with().restoreMusic();
-                }else{
-                    button_play.setText("播放");
-                    StarrySky.with().pauseMusic();
-                }
-                break;
-            case R.id.button_last:
-                StarrySky.with().skipToPrevious();
-                break;
-            case R.id.button_next:
-                StarrySky.with().skipToNext();
-                break;
-            default:
-                break;
-        }
-    }
-
-    @Override
     public void onLoginResult(boolean ok) {
-        if(!ok){
-            button_play.setEnabled(false);
-            button_last.setEnabled(false);
-            button_next.setEnabled(false);
-        }else {
+        if(ok){
             //请求列表
             wyyMusic.requestSongList(0);
+        }else {
+            Toast.makeText(this,"登录失败！",Toast.LENGTH_SHORT).show();
         }
     }
 

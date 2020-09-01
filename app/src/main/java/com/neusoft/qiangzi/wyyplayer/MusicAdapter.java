@@ -1,10 +1,12 @@
-package com.alpine.team3.http_json_api;
+package com.neusoft.qiangzi.wyyplayer;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -13,7 +15,6 @@ import com.lzx.starrysky.StarrySky;
 import com.lzx.starrysky.provider.SongInfo;
 
 import java.util.List;
-import java.util.zip.Inflater;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -60,6 +61,7 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.MyViewHolder
         ImageView imageView;
         TextView tvSongName,tvArtist,tvDuration;
         SongInfo info;
+        Button btnPlayStart;
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -67,17 +69,28 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.MyViewHolder
             tvSongName = itemView.findViewById(R.id.tvSongName);
             tvArtist = itemView.findViewById(R.id.tvArtist);
             tvDuration = itemView.findViewById(R.id.tvDurantion);
+            btnPlayStart = itemView.findViewById(R.id.buttonPlayStart);
             itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent i = new Intent(context, SongPlayActivity.class);
+                    i.putExtra("songid", info);
+                    context.startActivity(i);
+                }
+            });
+            btnPlayStart.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     if(StarrySky.with().isCurrMusicIsPlaying(info.getSongId())){
                         StarrySky.with().pauseMusic();
+                        btnPlayStart.setBackgroundResource(R.drawable.ic_baseline_play_circle_filled);
                         if(chagedListener!=null)chagedListener.onChaged(false);
                     }else {
                         StarrySky.with().playMusicById(info.getSongId());
+                        btnPlayStart.setBackgroundResource(R.drawable.ic_baseline_pause_circle_filled);
                         if(chagedListener!=null)chagedListener.onChaged(true);
                     }
-                    Log.d(TAG, "onClick: song id = "+info.getSongId());
+                    Log.d(TAG, "btnPlayStart:onClick: song id = "+info.getSongId());
                 }
             });
         }
@@ -88,6 +101,10 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.MyViewHolder
             tvArtist.setText(info.getArtist());
             tvDuration.setText(String.valueOf(info.getDuration()));
             Glide.with(context).load(info.getSongCover()).into(imageView);
+            if(StarrySky.with().isCurrMusicIsPlaying(info.getSongId()))
+                btnPlayStart.setBackgroundResource(R.drawable.ic_baseline_pause_circle_filled);
+            else
+                btnPlayStart.setBackgroundResource(R.drawable.ic_baseline_play_circle_filled);
         }
     }
 

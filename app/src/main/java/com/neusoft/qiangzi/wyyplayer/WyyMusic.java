@@ -1,4 +1,4 @@
-package com.alpine.team3.http_json_api;
+package com.neusoft.qiangzi.wyyplayer;
 
 import android.app.Application;
 import android.content.Context;
@@ -26,11 +26,13 @@ import java.util.logging.Level;
 
 import okhttp3.OkHttpClient;
 
-import static com.alpine.team3.http_json_api.RequestSongInfoInterceptor.BASE_URL;
+import static com.neusoft.qiangzi.wyyplayer.RequestSongInfoInterceptor.BASE_URL;
 
 public class WyyMusic {
 
     private static final String TAG = "WywMusic";
+    private static final String WYY_ACCOUNT = "18742016198";
+    private static final String WYY_PASSWORD = "wzq02087374";
     String uid = null;
     private List<SongInfo> playList = new ArrayList<>();
     private Context context;
@@ -39,10 +41,16 @@ public class WyyMusic {
     private OnWyyListener wyyListener;
     private int playlistCount;
     private int currentPlaylistsIndex;
+    private static WyyMusic instance;
 
     public WyyMusic(Context context, Application application) {
         this.context = context;
         this.application = application;
+        this.instance = this;
+    }
+
+    public static WyyMusic getInstance() {
+        return instance;
     }
 
     public void login(){
@@ -80,8 +88,8 @@ public class WyyMusic {
     }
 
     private void loginCheck(){
-        String phone = "18742016198";
-        String password = "wzq02087374";
+        String phone = WYY_ACCOUNT;
+        String password = WYY_PASSWORD;
         OkGo.<String>get(BASE_URL + "/login/cellphone?phone=" + phone + "&password=" + password).execute(new StringCallback() {
             @Override
             public void onSuccess(Response<String> response) {
