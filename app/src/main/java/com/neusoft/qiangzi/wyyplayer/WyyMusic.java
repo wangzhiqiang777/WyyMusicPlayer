@@ -31,8 +31,8 @@ import static com.neusoft.qiangzi.wyyplayer.RequestSongInfoInterceptor.BASE_URL;
 public class WyyMusic {
 
     private static final String TAG = "WywMusic";
-    private static final String WYY_ACCOUNT = "18742016198";
-    private static final String WYY_PASSWORD = "wzq02087374";
+    private static final String WYY_ACCOUNT = "输入你的网易云账号";
+    private static final String WYY_PASSWORD = "输入你的网易云密码";
     String uid = null;
     private List<SongInfo> playList = new ArrayList<>();
     private Context context;
